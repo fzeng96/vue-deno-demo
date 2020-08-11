@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vue & Deno Demo</title>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div> <h1>The Shrimp Farm</h1></div>
+    <ul>
+      <li v-for="(farm, fIndex) in farms" style="margin-top:20px">
+        <div>
+            Farm name:<input v-model="farm.name" placeholder="Enter farm name"> size is
+			{{farmSize(farm)}} hectares
+        </div>
+        <ul>
+          <li v-for="(pond, pIndex) in farm.ponds">
+            <div>Pond name: <input v-model="pond.name" placeholder="Enter pond name"> </div>
+            <div>Pond size: <input oninput="value=value.replace(/[^\d]/g,'')"  v-model.number="pond.size" placeholder="Enter farm size"> hectares
+              <button v-on:click="deletePond(fIndex, pIndex)">Delete Pond</butto>
+            </div>
+          </li> 
+        </ul>
+        <div style="margin-top:10px">
+            <button v-on:click="addPond(farm)" style="margin-right:5px">Add Pond</butto>
+            <button v-on:click="deleteFarm(fIndex)">Delete Farm</butto>
+        </div>
+      </li>
+    </ul>
+  <div style="margin-bottom:10px"> Total farms size is {{totalSize()}} hectares </div>
+  <div>
+  <button v-on:click="addFarm()" style="margin-right:5px">Add Farm</button>
+  <button v-on:click="saveFarms()">Save Farms</butto>
+  </div>
+  <div style="margin-top:10px"> {{message}} </div>
+  </div>
+
+  <script>
+  var app = new Vue({
+      el: '#app',
+      data: {
+        farms : [],
+        message : ''
+      },
+      mounted() {
+        axios.get('http://localhost:8000/api/v1/getFarms')
+            .then(response => (
+              this.farms = response.data.farms
+            ))
+      },
+      methods: {
+        farmSize : function(farm){
+          if(farm){
+            return farm.ponds
+              .filter(pond => pond.size)
+              .map(pond => (pond.size))
+              .reduce(function(a, b){
+                return a + b;
+              }, 0);
+          }
+        },
+        totalSize: function(){
+          return this.farms
+            .map(farm => this.farmSize(farm))
+            .reduce(function(a, b){
+              return a + b;
+            }, 0);
+        },
+        deletePond : function(fIndex, pIndex){
+          this.farms[fIndex].ponds.splice(pIndex, 1)
+        },
+        addPond: function(farm){
+          var pond = {name: '', size : ''}
+          farm.ponds.push(pond)
+        },
+        addFarm: function(){
+          var farm = {name: '', ponds: [{name: '', size: ''}]}
+          this.farms.push(farm)
+        },
+        deleteFarm : function(fIndex){
+          this.farms.splice(fIndex, 1)
+        },
+        saveFarms : function(){
+              console.error('posting ..' + JSON.stringify(this.farms))
+              axios.post('http://localhost:8000/api/v1/saveFarms', this.farms)
+                   .then(response => (
+                      this.message = response.data.msg
+                    ))
+        }
+      }
+  })
+  </script>
+</body>
+</html>
