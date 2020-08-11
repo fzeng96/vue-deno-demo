@@ -2,6 +2,7 @@
 A demo web app using vue and deno
 
 Vue is a reactive javascript framework for the broswer
+
 Deno is a server runtime for javascript and typescript similar to nodeJS
 
 1. Go to https://deno.land/ to download and install deno, install version 1.2.x 
